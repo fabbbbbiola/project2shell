@@ -20,15 +20,16 @@ char** separate_on_space(char* input, size_t* sepv_size) {
     return sepv;
 }
 
-void exec_command(command* cmdp) {
-    execvp(cmdp->argv[0], cmdp->argv);
+void exec_command(command cmdp) {
+    execvp(cmd.argv[0], cmd.argv);
 }
 
 command_list make_command_vector(char* input) {
     size_t sepv_size;
+    // Contains the argument split on " "
     char** sepv = separate_on_space(input, &sepv_size);
 
-    command_list cmdl = new_command_list();
+    command_list* cmd_list = NULL;
     
     size_t i = 0;
     for (; i < sepv_size; i++) {

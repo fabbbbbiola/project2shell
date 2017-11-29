@@ -1,29 +1,29 @@
 #include <string.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "input.h"
 
-char* get_input(){
-  int bufsz = 1000;
-  int pos = 0;
-  char *buff = malloc(sizeof(char) * bufsz);
-  char c;
+char* get_input(void){
+  char str[256];
+  int size = strlen(str);
+  int i;
+  char* temp = (char*)malloc(size + 1);
 
-  c = getchar();
-  //strcpy(buff, c);
+  fgets(str, sizeof(str), stdin);
 
-  while (buff){
-    if (c == EOF){
-      return buff;
-    }
-    else {
-      buff[pos] = c;
-    }
-    pos++;
-    
-    if (pos >= bufsz){
-      bufsz += 1000;
-      buff = (char*)realloc(buff, bufsz);
-    }
+  if (fgets(str, sizeof(str), stdin) == NULL){
+    printf("error: %s\n", strerror(errno));
   }
   
+  for (i = 0; i < size; i++){
+    temp[i] = str[i];
+  }
+  temp[size] = '\0';
+
+  return temp;
+  
 }
+
+ 

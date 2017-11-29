@@ -1,1 +1,1 @@
-char* get_input();
+char* get_input(void);

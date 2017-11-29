@@ -9,4 +9,4 @@ struct command_list {
 
 void exec_command(command cmd);
 
-command_list* make_command_list(char* str);
+command_list* make_list_command(char* str);

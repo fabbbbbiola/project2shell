@@ -5,37 +5,17 @@
 #include "stdlib.h"
 #include "stdio.h"
 #include "unistd.h"
+#include "string.h"
 
 void print_prompt(){
 
-  //chdir()
   char* current_d[100];
-  size_t size = 100;
-  
-  char* dir_name = getcwd(*current_d, size);
-  printf("%s", dir_name);
-  
-  /*
-  DIR * d = opendir(".");
-  struct dirent * entry = readdir(d);
-  d = opendir(".");
-  entry = readdir(d);
+  char* substr[100];
+  char* dir_name = getcwd(*current_d, sizeof(char));
 
-  if(entry->d_type == DT_DIR){
-    printf("shell:%s$\n", entry->d_name);
-  }
-
-    user name :~$ or username:~/dir$
-  if (in user directory but not in any subdirectories){
-    printf(“%s~$\t”, user);
-  }
-  if (in a specific sub directory:){
-    printf(“%s :~%s$\t “, user, dirname  );
-  }
-  */
+  printf("%s$\n", dir_name);
 
 }
-
 
 int main() {
     while (1) {

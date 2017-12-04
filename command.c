@@ -11,9 +11,17 @@
 // If the 'num_substrings' pointer is NULL, then this function does not write to
 // the pointer. Instead, it NULL-terminates the return value.
 char** split_on(char* needle, char* input, size_t* num_substrings) {
+    size_t needle_len = strlen(needle);
+
     size_t substring_count = 0;
     char* substring = input;
+
     for (; substring != NULL; substring_count++) {
+        // Skip empty substrings.
+        while (strncmp(needle, substring, needle_len) == 0) {
+            substring += needle_len;
+        }
+
         strsep(&substring, needle);
     }
 
@@ -30,8 +38,13 @@ char** split_on(char* needle, char* input, size_t* num_substrings) {
     char* current_substring = input;
 
     for (; i < substring_count; i++) {
+        // Skip empty substrings.
+        while (strncmp(needle, current_substring, needle_len) == 0) {
+            current_substring += needle_len;
+        }
+
         substrings[i] = current_substring;
-        current_substring += strlen(current_substring) + 1;
+        current_substring += strlen(current_substring) + needle_len;
     }
 
     return substrings;
@@ -53,6 +66,8 @@ void command_exec(struct command cmd) {
             }
         }
         printf("%s\n", to_print);
+    } else if (strcmp(program_name, "quit") == 0) {
+        exit(0);
     } else {
         if (fork() == 0) {
             execvp(cmd.argv[0], cmd.argv);
@@ -86,9 +101,9 @@ struct command_list* command_list_make(char* str) {
 
     struct command_list* cmd_list = NULL;
 
-    size_t i = 0;
-    for (; i < num_commands; i++) {
-        char* cmd_string = cmd_strings[i];
+    size_t i = num_commands;
+    for (; i > 0; i--) {
+        char* cmd_string = cmd_strings[i - 1];
         struct command cmd;
         cmd.argv = split_on(" ", cmd_string, NULL);
         cmd_list = command_list_insert_front(cmd_list, cmd);

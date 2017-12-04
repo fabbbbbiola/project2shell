@@ -3,10 +3,10 @@ struct command {
 };
 
 struct command_list {
-    command cmd;
-    command_list* next;
+    struct command cmd;
+    struct command_list* next;
 };
 
-void exec_command(command cmd);
+void command_exec(struct command cmd);
 
-command_list* make_list_command(char* str);
+struct command_list* command_list_make(char* str);

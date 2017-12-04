@@ -1,11 +1,13 @@
 #include "command.h"
 
-void handle_input(char* input) {
-    command_list* cmd_list = make_command_list(input);
+#include <stddef.h>
 
-    command_list* current;
-    for (current = cmd_list; current != NULL; current = current->next)
-        exec_command(current->cmd);
+void handle_input(char* input) {
+    struct command_list* cmd_list = command_list_make(input);
+
+    struct command_list* current = cmd_list;
+    for (; current != NULL; current = current->next) {
+        command_exec(current->cmd);
     }
 
     free_command_list(cmd_list);

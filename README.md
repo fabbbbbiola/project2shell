@@ -8,7 +8,7 @@ Features:
 	Handles input with command list
 
 Attempted:
-	 split commands on quotes and semicolons
+	To split commands on quotes and semicolons
 	To print a current working directory prompt in linux format. Couldn't figure out how to separate it so that the "/"s and the unnecessary directory info wouldn't print.
 	Could not get pipes to work
 

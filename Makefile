@@ -15,5 +15,9 @@ input_handler.o: input_handler.c input_handler.h
 main.o: main.c
 	gcc -c main.c
 
+clean:
+	rm *o
+	rm *~
+
 run: all
 	./a.out

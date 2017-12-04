@@ -5,7 +5,8 @@ ifeq ($(DEBUG),true)
 	CFLAGS:=$(CFLAGS) -g
 endif
 
-all: main
+all: main.c
+	gcc main.o main.c command.o input.o input_handler.o
 
 main: command.o input.o input_handler.o main.o prompt.o
 	gcc -o $@ $^

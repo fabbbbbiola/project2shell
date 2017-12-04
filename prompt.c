@@ -7,9 +7,8 @@
 #include <unistd.h>
 
 void print_prompt() {
-  char* current_d[100];
-  char* substr[100];
-  char* dir_name = getcwd(*current_d, sizeof(char));
+  char current_d[100];
+  getcwd(current_d, sizeof(current_d));
 
-  printf("%s$ ", dir_name);
+  printf("%s$ ", current_d);
 }

@@ -1,6 +1,9 @@
+#include "input_handler.h"
+
 #include "command.h"
 
 #include <stddef.h>
+#include <stdlib.h>
 
 void handle_input(char* input) {
     struct command_list* cmd_list = command_list_make(input);
@@ -10,6 +13,6 @@ void handle_input(char* input) {
         command_exec(current->cmd);
     }
 
-    free_command_list(cmd_list);
+    command_list_free(cmd_list);
     free(input);
 }

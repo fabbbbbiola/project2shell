@@ -6,25 +6,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* get_input(void) {
-  char str[256];
-  int size = strlen(str);
-  int i;
-  char* temp = (char*)malloc(size + 1);
-
-  fgets(str, sizeof(str), stdin);
-
-  if (fgets(str, sizeof(str), stdin) == NULL){
-    printf("error: %s\n", strerror(errno));
+char* get_input() {
+  char buffer[256];
+  if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+    return NULL;
   }
-  
-  for (i = 0; i < size; i++){
-    temp[i] = str[i];
+
+  size_t size = strlen(buffer);
+  if (buffer[size - 1] == '\n') {
+    // Exclude the newline.
+    size--;
   }
+
+  char* temp = malloc(size + 1);
+  strncpy(temp, buffer, size);
   temp[size] = '\0';
-
   return temp;
-  
 }
 
  

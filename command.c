@@ -1,13 +1,20 @@
 #include "command.h"
 
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <sys/wait.h>
 
 // If the 'num_substrings' pointer is NULL, then this function does not write to
 // the pointer. Instead, it NULL-terminates the return value.
 char** split_on(char* needle, char* input, size_t* num_substrings) {
     size_t substring_count = 0;
-    for (; input != NULL; substring_count++) {
-        strsep(&input, needle);
+    char* substring = input;
+    for (; substring != NULL; substring_count++) {
+        strsep(&substring, needle);
     }
 
     char** substrings;
@@ -31,7 +38,39 @@ char** split_on(char* needle, char* input, size_t* num_substrings) {
 }
 
 void command_exec(struct command cmd) {
-    execvp(cmd.argv[0], cmd.argv);
+    char* program_name = cmd.argv[0];
+    if (strcmp(program_name, "cd") == 0) {
+        char* target = cmd.argv[1] != NULL ? cmd.argv[1] : getenv("HOME");
+        chdir(target);
+    } else if (strcmp(program_name, "echo") == 0) {
+        char to_print[256] = "";
+        if (cmd.argv[1] != NULL) {
+            strcat(to_print, cmd.argv[1]);
+            size_t i = 2;
+            for (; cmd.argv[i] != NULL; i++) {
+                strcat(to_print, " ");
+                strcat(to_print, cmd.argv[i]);
+            }
+        }
+        printf("%s\n", to_print);
+    } else {
+        if (fork() == 0) {
+            execvp(cmd.argv[0], cmd.argv);
+        } else {
+            int wstatus;
+            wait(&wstatus);
+        }
+    }
+}
+
+void command_list_free(struct command_list* cmd_list) {
+    struct command_list* current = cmd_list;
+    while (current != NULL) {
+        struct command_list* prev = current;
+        current = current->next;
+        free(prev->cmd.argv);
+        free(prev);
+    }
 }
 
 struct command_list* command_list_insert_front(struct command_list* cmd_list, struct command cmd) {
@@ -52,7 +91,7 @@ struct command_list* command_list_make(char* str) {
         char* cmd_string = cmd_strings[i];
         struct command cmd;
         cmd.argv = split_on(" ", cmd_string, NULL);
-        command_list_insert_front(cmd_list, cmd);
+        cmd_list = command_list_insert_front(cmd_list, cmd);
     }
 
     free(cmd_strings);

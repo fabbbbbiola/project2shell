@@ -8,13 +8,14 @@ Features:
 	Handles input with command list
 
 Attempted:
-	To split commands on quotes and semicolons
+	 split commands on quotes and semicolons
 	To print a current working directory prompt in linux format. Couldn't figure out how to separate it so that the "/"s and the unnecessary directory info wouldn't print.
 	Could not get pipes to work
 
 Bugs:
 			
-	
+- While working on this project, I ran into a strange memory management bug on my computer. I determined via a debugger that after I made a call to `malloc`, the contents of a completely unrelated array would be modified. I think this is the reason why sometimes, entering a command will do nothing and other times the shell will successfully execute the command.
+
 Files & Function Headers:
 input.c
 	Handles the input and turns it into a readable line

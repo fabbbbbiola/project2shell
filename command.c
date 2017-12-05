@@ -1,5 +1,6 @@
 #include "command.h"
 
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,13 @@
 #include <unistd.h>
 
 #include <sys/wait.h>
+
+struct redirect_state {
+  int orig_in_fd;
+  int orig_out_fd;
+  int new_in_fd;
+  int new_out_fd;
+};
 
 // If the 'num_substrings' pointer is NULL, then this function does not write to
 // the pointer. Instead, it NULL-terminates the return value.
@@ -56,6 +64,59 @@ char** split_on(char* needle, char* input, size_t* num_substrings) {
     return substrings;
 }
 
+struct redirect_state set_in_out_from_command(struct command cmd) { 
+  struct redirect_state state;
+  
+  if (cmd.in_from_file != NULL) {
+    state.orig_in_fd = dup(STDIN_FILENO);
+    state.new_in_fd = open(cmd.in_from_file, O_CREAT | O_RDONLY, 0644);
+    dup2(state.new_in_fd, STDIN_FILENO);
+  } else {
+    state.orig_in_fd = -1;
+    state.new_in_fd = -1;
+  }
+
+  if (cmd.out_to_file != NULL) {
+    state.orig_out_fd = dup(STDOUT_FILENO);
+    state.new_out_fd = open(cmd.out_to_file, O_CREAT | O_WRONLY, 0644);
+    dup2(state.new_out_fd, STDOUT_FILENO);
+  } else {
+    state.orig_out_fd = -1;
+    state.new_out_fd = -1;
+  }
+
+  return state;
+}
+
+void unset_in_out_from_command(struct redirect_state state) {
+  if (state.new_in_fd != -1) {
+    close(state.new_in_fd);
+    dup2(state.orig_in_fd, STDIN_FILENO);
+    close(state.orig_in_fd);
+  }
+
+  if (state.new_out_fd != -1) {
+    close(state.new_out_fd);
+    dup2(state.orig_out_fd, STDOUT_FILENO);
+    close(state.orig_out_fd);
+  }
+}
+
+// Note: The array should be null-terminated.
+// Returns NULL if we can't find the word.
+char** find_word(char* word, char** array) {
+  size_t word_len = strlen(word);
+  
+  size_t i = 0;
+  for (; array[i] != NULL; i++) {
+    if (strncmp(word, array[i], word_len) == 0) {
+      return array + i;
+    }
+  }
+
+  return NULL;
+}
+
 void command_exec(struct command cmd) {
     char* program_name = cmd.argv[0];
     if (strcmp(program_name, "cd") == 0) {
@@ -71,7 +132,9 @@ void command_exec(struct command cmd) {
                 strcat(to_print, cmd.argv[i]);
             }
         }
+	struct redirect_state state = set_in_out_from_command(cmd);
         printf("%s\n", to_print);
+	unset_in_out_from_command(state);
     } else if (strcmp(program_name, "quit") == 0) {
         exit(0);
     } else {
@@ -111,7 +174,28 @@ struct command_list* command_list_make(char* str) {
     for (; i > 0; i--) {
         char* cmd_string = cmd_strings[i - 1];
         struct command cmd;
-        cmd.argv = split_on(" ", cmd_string, NULL);
+        char** cmd_words = split_on(" ", cmd_string, NULL);
+	
+	char** in_ptr = find_word("<", cmd_words);
+	if (in_ptr != NULL && in_ptr[1] != NULL) {
+	  cmd.in_from_file = in_ptr[1];
+	  // Null-terminate the array earlier '< file' isn't included in the argv passed to execvp().
+	  in_ptr[0] = NULL;
+	  in_ptr[1] = NULL;
+	} else {
+	  cmd.in_from_file = NULL;
+	}
+
+	char** out_ptr = find_word(">", cmd_words);
+	if (out_ptr != NULL && out_ptr[1] != NULL) {
+	  cmd.out_to_file = out_ptr[1];
+	  // Null-terminate the array earlier '< file' isn't included in the argv passed to execvp().
+	  out_ptr[0] = NULL;
+	  out_ptr[1] = NULL;
+	} else {
+	  cmd.out_to_file = NULL;
+	}
+	
         cmd_list = command_list_insert_front(cmd_list, cmd);
     }
 

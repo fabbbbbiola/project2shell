@@ -1,4 +1,6 @@
 struct command {
+  char* in_from_file; // <
+  char* out_to_file; // >
     char** argv; // Includes the program name
 };
 

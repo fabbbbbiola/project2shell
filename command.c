@@ -17,10 +17,16 @@ char** split_on(char* needle, char* input, size_t* num_substrings) {
     char* substring = input;
 
     for (; substring != NULL; substring_count++) {
-        // Skip empty substrings.
+        // Don't create empty substrings from duplicate occurrences of needle.
         while (strncmp(needle, substring, needle_len) == 0) {
             substring += needle_len;
         }
+
+	// If we're at the end of the string due to duplicate occurrences of
+	// needle, avoid creating an empty string at the end.
+	if (substring[0] == '\0') {
+	    break;
+	}
 
         strsep(&substring, needle);
     }

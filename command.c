@@ -41,10 +41,10 @@ char** split_on(char* needle, char* input, size_t* num_substrings) {
 
     char** substrings;
     if (num_substrings == NULL) {
-        substrings = malloc(substring_count + 1);
+        substrings = malloc((substring_count + 1) * sizeof(char*));
         substrings[substring_count] = NULL;
     } else {
-        substrings = malloc(substring_count);
+        substrings = malloc(substring_count * sizeof(char*));
         *num_substrings = substring_count;
     }
 

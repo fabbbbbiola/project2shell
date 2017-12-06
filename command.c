@@ -174,7 +174,13 @@ void command_list_free(struct command_list* cmd_list) {
     while (current != NULL) {
         struct command_list* prev = current;
         current = current->next;
-        free(prev->cmd.argv);
+        // If in_from_program isn't NULL, then it's the original return value of malloc() and argv
+        // is just that value offseted. Free that instead.
+        if (prev->cmd.in_from_program != NULL) {
+            free(prev->cmd.in_from_program);
+        } else {
+            free(prev->cmd.argv);
+        }
         free(prev);
     }
 }

@@ -174,9 +174,9 @@ struct command_list* command_list_make(char* str) {
     for (; i > 0; i--) {
         char* cmd_string = cmd_strings[i - 1];
         struct command cmd;
-        char** cmd_words = split_on(" ", cmd_string, NULL);
+        cmd.argv = split_on(" ", cmd_string, NULL);
 	
-	char** in_ptr = find_word("<", cmd_words);
+	char** in_ptr = find_word("<", cmd.argv);
 	if (in_ptr != NULL && in_ptr[1] != NULL) {
 	  cmd.in_from_file = in_ptr[1];
 	  // Null-terminate the array earlier '< file' isn't included in the argv passed to execvp().
@@ -186,7 +186,7 @@ struct command_list* command_list_make(char* str) {
 	  cmd.in_from_file = NULL;
 	}
 
-	char** out_ptr = find_word(">", cmd_words);
+	char** out_ptr = find_word(">", cmd.argv);
 	if (out_ptr != NULL && out_ptr[1] != NULL) {
 	  cmd.out_to_file = out_ptr[1];
 	  // Null-terminate the array earlier '< file' isn't included in the argv passed to execvp().

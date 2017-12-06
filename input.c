@@ -18,7 +18,7 @@ char* get_input() {
     size--;
   }
 
-  char* temp = malloc(size + 1);
+  char* temp = malloc((size + 1) * sizeof(char));
   strncpy(temp, buffer, size);
   temp[size] = '\0';
   return temp;

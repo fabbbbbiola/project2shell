@@ -9,6 +9,9 @@
 
 #include <sys/wait.h>
 
+#define READ_PIPE 0
+#define WRITE_PIPE 1
+
 struct redirect_state {
   int orig_in_fd;
   int orig_out_fd;
@@ -71,6 +74,23 @@ struct redirect_state set_in_out_from_command(struct command cmd) {
     state.orig_in_fd = dup(STDIN_FILENO);
     state.new_in_fd = open(cmd.in_from_file, O_CREAT | O_RDONLY, 0644);
     dup2(state.new_in_fd, STDIN_FILENO);
+  } else if (cmd.in_from_program != NULL) {
+      int fds[2];
+      pipe(fds);
+
+      if (fork() == 0) {
+        // We're the child. Execute the command that's having its output piped.
+        // TODO: Handle echo/cd here.
+        close(fds[READ_PIPE]);
+        dup2(fds[WRITE_PIPE], STDOUT_FILENO);
+        execvp(cmd.in_from_program[0], cmd.in_from_program);
+      } else {
+        // We're the parent. Execute the command that's taking input from the pipe.
+        close(fds[WRITE_PIPE]);
+        state.orig_in_fd = dup(STDIN_FILENO);
+        state.new_in_fd = fds[READ_PIPE];
+        dup2(state.new_in_fd, STDIN_FILENO);
+      }
   } else {
     state.orig_in_fd = -1;
     state.new_in_fd = -1;
@@ -135,7 +155,7 @@ void command_exec(struct command cmd) {
 	struct redirect_state state = set_in_out_from_command(cmd);
         printf("%s\n", to_print);
 	unset_in_out_from_command(state);
-    } else if (strcmp(program_name, "quit") == 0) {
+    } else if (strcmp(program_name, "exit") == 0) {
         exit(0);
     } else {
         if (fork() == 0) {
@@ -196,7 +216,19 @@ struct command_list* command_list_make(char* str) {
 	  out_ptr[1] = NULL;
 	} else {
 	  cmd.out_to_file = NULL;
-	}
+    }
+    
+    char** pipe_ptr = find_word("|", cmd.argv);
+    if (pipe_ptr != NULL && pipe_ptr[1] != NULL) {
+        // Set in_from_program to the original argv.
+        // Null-terminate it by setting pipe_ptr to NULL.
+        // Point argv to the arguments past the pipe.
+        cmd.in_from_program = cmd.argv;
+        pipe_ptr[0] = NULL;
+        cmd.argv = pipe_ptr + 1;
+    } else {
+        cmd.in_from_program = NULL;
+    }
 	
         cmd_list = command_list_insert_front(cmd_list, cmd);
     }

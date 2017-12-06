@@ -139,7 +139,9 @@ void command_exec(struct command cmd) {
         exit(0);
     } else {
         if (fork() == 0) {
+            struct redirect_state state = set_in_out_from_command(cmd);
             execvp(cmd.argv[0], cmd.argv);
+            unset_in_out_from_command(state);
         } else {
             int wstatus;
             wait(&wstatus);
